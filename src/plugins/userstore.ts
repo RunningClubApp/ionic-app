@@ -13,9 +13,20 @@ function setUserToken (token: string): void {
 function getUserToken (): Promise<string> {
   return new Promise((resolve) => {
     Storage.get({ key: 'user_token' })
-      .then((ret) => JSON.parse(ret.value || "{}"))
-      .then(tkn => tkn.token.token)
+      .then((ret) => JSON.parse(ret.value || ''))
+      .then((ret) => { console.log(ret); return ret })
+      .then((ret) => {
+        if (ret.token) {
+          return ret.token.token
+        } else {
+          return ''
+        }
+      })
       .then(resolve)
+      .catch((err) => {
+        console.log(err)
+        resolve('')
+      })
   })
 }
 

@@ -6,11 +6,21 @@
         <ion-label>Your E-Mail</ion-label>
         <ion-input v-model="userDetails.email" type="email"></ion-input>
       </ion-item>
+      <ion-item v-if="errors.email">
+        <ion-text color="danger">E-Mail invalid</ion-text>
+      </ion-item>
+      <ion-item v-if="errors.user">
+        <ion-text color="danger">E-Mail already in use</ion-text>
+      </ion-item>
+      
     
       <!-- Name input -->
       <ion-item>
         <ion-label>Your Name</ion-label>
         <ion-input v-model="userDetails.name" type="text"></ion-input>
+      </ion-item>
+      <ion-item v-if="errors.name">
+        <ion-text color="danger">Name invalid</ion-text>
       </ion-item>
 
       <!-- Password input -->
@@ -18,7 +28,11 @@
         <ion-label>Password</ion-label>
         <ion-input v-model="userDetails.password" type="password"></ion-input>
       </ion-item>
-      
+      <ion-item v-if="errors.password">
+        <ion-text v-if="errors.password.mismatch" color="danger">Passwords do not match</ion-text>
+        <ion-text v-else color="danger">Password invalid</ion-text>
+      </ion-item>
+
       <!-- Confirm Password input -->
       <ion-item>
         <ion-label>Confirm</ion-label>
@@ -51,24 +65,33 @@ export default defineComponent({
         name: '',
         password: '',
         confirmPassword: '',
-
-      }
+      },
+      errors: {}
     }
   },
   methods: {
     CreateAccount: async function () {
-      const res = await fetch('http://localhost:8080/auth', {
+      this.errors = {}
+      await fetch('http://localhost:8080/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(this.userDetails)
       })
-      const data = await res.json()
-      if (data.success) {
-        setUserToken(data.token)
-        this.$router.push('/')
-      }
+      .then(res => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUserToken(data.token)
+          this.$router.push('/')
+        } else {
+          this.errors = data.errors
+          console.log(this.errors)
+        }
+      })
+      .catch((e) => {
+        console.log(e)
+      })
     }
   }
 })

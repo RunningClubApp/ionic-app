@@ -6,10 +6,16 @@
         <ion-label>Your E-Mail</ion-label>
         <ion-input v-model="userDetails.email" type="email"></ion-input>
       </ion-item>
+      <ion-item v-if="errors.user || errors.email">
+        <ion-text color="danger">User not found</ion-text>
+      </ion-item>
       <!-- Password input -->
       <ion-item>
         <ion-label>Password</ion-label>
         <ion-input v-model="userDetails.password" type="password"></ion-input>
+      </ion-item>
+      <ion-item v-if="errors.password">
+        <ion-text color="danger">Password Incorrect</ion-text>
       </ion-item>
     </ion-item-group>
 
@@ -36,23 +42,32 @@ export default defineComponent({
       userDetails: {
         email: '',
         password: '',
-      }
+      },
+      errors: { }
     }
   },
   methods: {
     LogIn: async function () {
-      const res = await fetch('http://localhost:8080/auth/login', {
+      this.errors = {}
+      await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(this.userDetails)
       })
-      const data = await res.json()
-      if (data.success) {
-        setUserToken(data.token)
-        this.$router.push('/')
-      }
+      .then(res => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUserToken(data.token)
+          this.$router.push('/')
+        } else {
+          this.errors = data.errors
+        }
+      })
+      .catch((e) => {
+        console.log(e)
+      })
     }
   }
 })

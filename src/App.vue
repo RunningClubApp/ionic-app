@@ -16,7 +16,7 @@ import { getUserToken } from './plugins/userstore'
 export default defineComponent({
   name: 'App',
   setup () {
-    const userToken = {};
+    const userToken = '';
     return {
       userToken
     }
@@ -27,9 +27,7 @@ export default defineComponent({
   },
   async mounted () {
     const tkn = await getUserToken()
-    this.userToken = tkn
-    console.log("userToken: ", this.userToken)
-    if (this.userToken === {} || this.userToken === undefined) {
+    if (tkn === undefined || tkn === '') {
       this.$router.push('/account')
     }
   }
