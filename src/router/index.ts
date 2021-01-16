@@ -47,6 +47,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/TabLeagues.vue')
       },
       {
+        path: 'tabCreateLeague',
+        component: () => import('@/views/TabCreateLeague.vue')
+      },
+      {
         path: 'tabRecord',
         component: () => import('@/views/TabRecord.vue')
       }

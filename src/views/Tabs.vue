@@ -17,7 +17,7 @@
           <ion-label>Record</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="tab4" href="/tabs/tabLeagues" :disabled="true">
+        <ion-tab-button tab="tab4" href="/tabs/tabLeagues">
           <ion-icon :icon="podium" />
           <ion-label>Leagues</ion-label>
         </ion-tab-button>
