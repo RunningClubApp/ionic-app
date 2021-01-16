@@ -12,7 +12,7 @@
           <ion-label>Feed</ion-label>
         </ion-tab-button>
         
-        <ion-tab-button tab="tab3" href="/tabs/tabRecord" :disabled="true">
+        <ion-tab-button tab="tab3" href="/tabs/tabRecord">
           <ion-icon :icon="radioButtonOnOutline" />
           <ion-label>Record</ion-label>
         </ion-tab-button>
