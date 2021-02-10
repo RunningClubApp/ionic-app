@@ -32,9 +32,11 @@ import { defineComponent } from 'vue';
 import { IonFab, IonFabButton, IonIcon } from '@ionic/vue'
 import { radioButtonOnOutline, stopOutline, save, trash } from 'ionicons/icons';
 
-import { Geolocation } from '@ionic-native/geolocation'
+import * as api from '../plugins/api'
+import * as platform from '../plugins/platform'
 
-import { getUserToken } from '../plugins/userstore'
+import { Geolocation } from '@ionic-native/geolocation'
+import { BackgroundGeolocation, BackgroundGeolocationEvents } from '@ionic-native/background-geolocation'
 
 export default defineComponent({
   name: 'RecExContainer',
@@ -64,7 +66,14 @@ export default defineComponent({
       recordedPath: [],
       watch: undefined,
       modalOpen: false,
-      userToken: undefined
+      userToken: undefined,
+      config: {
+        desiredAccuracy: 10,
+        stationaryRadius: 20,
+        distanceFilter: 30,
+        debug: true, //  enable this hear sounds for background-geolocation life-cycle.
+        stopOnTerminate: false, // enable this to clear background location settings when the app terminates
+      }
     }
   },
   mounted () {
@@ -72,6 +81,17 @@ export default defineComponent({
     this.mapHeight = screen.height - 5
     console.log(this.mapWidth, this.mapHeight)
     this.CreateMap()
+
+    if (platform.isMobile()) {
+      BackgroundGeolocation.configure(this.config)
+        .then(() => {
+          BackgroundGeolocation.on(BackgroundGeolocationEvents.location, (location) => {
+            console.log(location)
+            this.RecordPoint(location)
+            // BackgroundGeolocation.finish()
+          })
+        })
+    }
   },
   methods: {
     CreateMap () {
@@ -91,7 +111,7 @@ export default defineComponent({
           touchZoomRotate: false
       })
       
-      this.map.on('load', (e) => {
+      this.map.on('load', () => {
         this.map.resize()
         this.map.addSource('path', { type: 'geojson', data: {
             type: 'Feature',
@@ -112,22 +132,37 @@ export default defineComponent({
         Geolocation.getCurrentPosition()
           .then((data) => {
             this.map.panTo(new mapboxgl.LngLat(data.coords.longitude, data.coords.latitude))
-            this.map.set
           })
       })
     },
     StartRecord () {
+      if (platform.isMobile()) {
+        // start recording location
+        BackgroundGeolocation.start()
+      } else {
+        this.watch = Geolocation.watchPosition()
+        this.watch.subscribe(this.RecordPoint)
+        console.log(this.watch)
+      }
       this.state = this.states.recording
-      this.watch = Geolocation.watchPosition()
-      this.watch.subscribe(this.RecordPoint)
+      // BackgroundMode.enable()
+      // BackgroundMode.disableWebViewOptimizations()
     },
     StopRecord () {
-      if (this.watch !== undefined) {
-        // this.watch.unsubscribe()
-        this.state = this.states.saving
-        this.watch = undefined
-        this.modalOpen = true
+      if (platform.isMobile()) {
+        // start recording location
+        BackgroundGeolocation.stop()
+        BackgroundGeolocation.finish()
+      } else {
+        if (this.watch !== undefined) {
+          // this.watch.unsubscribe()
+          // BackgroundMode.disable()
+
+          this.watch = undefined
+        }
       }
+      this.state = this.states.saving
+      this.modalOpen = true
     },
     async SaveRecording () {
       console.log(this.recordedPath.length)
@@ -139,31 +174,23 @@ export default defineComponent({
       console.log(this.recordedPath)
       // Do API Call
       this.errors = {}
-      const tkn = await getUserToken()
       const start = this.recordedPath[0].timestamp
       const end = this.recordedPath[this.recordedPath.length - 1].timestamp
-      await fetch(`http://localhost:8080/exercise?token=${tkn}&s=${start}&e=${end}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ path: this.recordedPath })
-      })
-      .then(res => res.json())
-      .then((data) => {
-        console.log(data)
-        if (data.success) {
-          this.state = this.states.default
-          this.recordedPath = []
-          this.$router.push('/tabs/tabFeed')
-        } else {
-          this.errors = data.errors
-          console.log(this.errors)
-        }
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+      api.call(`exercise?s=${start}&e=${end}`, { path: this.recordedPath }, 'POST', true)
+        .then((data) => {
+          console.log(data)
+          if (data.success) {
+            this.state = this.states.default
+            this.recordedPath = []
+            this.$router.push('/tabs/tabFeed')
+          } else {
+            this.errors = data.errors
+            console.log(this.errors)
+          }
+        })
+        .catch((e) => {
+          console.log(e)
+        })
     },
     DeleteRecording () {
       this.recordedPath = []

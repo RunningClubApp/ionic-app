@@ -28,7 +28,7 @@ export default defineComponent({
   components: { CreateLeagueContainer, IonHeader, IonToolbar, IonTitle, IonContent, IonPage },
   setup () {
     return {
-      addCircleOutline
+      addCircleOutline,
     }
   }
 })

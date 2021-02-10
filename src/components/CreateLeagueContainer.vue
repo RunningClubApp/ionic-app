@@ -3,8 +3,11 @@
     <!-- Email input -->
     <ion-item-group>
       <ion-item>
-        <ion-label>League name</ion-label>
+        <ion-label>League title</ion-label>
         <ion-input v-model="leagueDetails.name" type="text"></ion-input>
+      </ion-item>
+      <ion-item v-if="errors.title">
+        <ion-text color="danger">Title invalid</ion-text>
       </ion-item>
 
       <ion-item>
@@ -15,24 +18,27 @@
           <ion-select-option value="Yearly">Yearly</ion-select-option>
         </ion-select>
       </ion-item>
+      <ion-item v-if="errors.length">
+        <ion-text color="danger">Length is invalid</ion-text>
+      </ion-item>
 
     </ion-item-group>
 
-    <!-- Create Account button -->
+    <!-- Create League button -->
     <ion-button @click="CreateLeague" expand="block">Create League</ion-button>
   </div>
 </template>
 
 <script lang="ts">
-import { IonItem, IonLabel, IonInput, IonButton, IonSelect, IonSelectOption } from '@ionic/vue';
+import { IonItem, IonItemGroup, IonLabel, IonInput, IonText, IonButton, IonSelect, IonSelectOption } from '@ionic/vue';
 
 import { defineComponent } from 'vue';
 
-import { getUserToken } from '../plugins/userstore'
+import * as api from '../plugins/api'
 
 export default defineComponent({
   name: 'CreateLeagueContainer',
-  components: { IonItem, IonLabel, IonInput, IonButton, IonSelect, IonSelectOption },
+  components: { IonItem, IonItemGroup, IonLabel, IonText, IonInput, IonButton, IonSelect, IonSelectOption },
   props: {
     name: String
   },
@@ -48,15 +54,8 @@ export default defineComponent({
   methods: {
     async CreateLeague () {
       this.errors = {}
-      const token = await getUserToken()
       console.log(this.leagueDetails)
-      await fetch(`http://localhost:8080/leagues?token=${token}&ti=${this.leagueDetails.name}&l=${this.leagueDetails.length}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(res => res.json())
+      await api.call(`leagues?ti=${this.leagueDetails.name}&l=${this.leagueDetails.length}`, {}, 'POST', true)
       .then((data) => {
         if (data.success) {
           this.$router.push('/')

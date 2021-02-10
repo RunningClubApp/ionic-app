@@ -25,15 +25,16 @@
 </template>
 
 <script lang="ts">
-import { IonItem, IonLabel, IonInput, IonButton } from '@ionic/vue';
+import { IonItem, IonItemGroup, IonText, IonLabel, IonInput, IonButton } from '@ionic/vue';
 
 import { defineComponent } from 'vue';
 
 import { setUserToken, getUserToken } from '../plugins/userstore'
+import * as api from '../plugins/api'
 
 export default defineComponent({
   name: 'LoginContainer',
-  components: { IonItem, IonLabel, IonInput, IonButton },
+  components: { IonItem, IonItemGroup, IonText, IonLabel, IonInput, IonButton },
   props: {
     name: String
   },
@@ -49,25 +50,19 @@ export default defineComponent({
   methods: {
     LogIn: async function () {
       this.errors = {}
-      await fetch('http://localhost:8080/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(this.userDetails)
-      })
-      .then(res => res.json())
-      .then((data) => {
-        if (data.success) {
-          setUserToken(data.token)
-          this.$router.push('/')
-        } else {
-          this.errors = data.errors
-        }
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+      api.call('auth/login', this.userDetails, 'POST', false)
+        .then((data) => {
+          console.log(data)
+          if (data.success) {
+            setUserToken(data.token)
+            this.$router.push('/')
+          } else {
+            this.errors = data.errors
+          }
+        })
+        .catch((e) => {
+          console.log(e)
+        })
     }
   }
 })

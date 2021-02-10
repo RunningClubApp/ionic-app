@@ -51,6 +51,7 @@ import { IonItem, IonLabel, IonInput, IonButton } from '@ionic/vue';
 import { defineComponent } from 'vue';
 
 import { setUserToken } from '../plugins/userstore'
+import * as api from '../plugins/api'
 
 export default defineComponent({
   name: 'SignupContainer',
@@ -72,26 +73,20 @@ export default defineComponent({
   methods: {
     CreateAccount: async function () {
       this.errors = {}
-      await fetch('http://localhost:8080/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(this.userDetails)
-      })
-      .then(res => res.json())
-      .then((data) => {
-        if (data.success) {
-          setUserToken(data.token)
-          this.$router.push('/')
-        } else {
-          this.errors = data.errors
-          console.log(this.errors)
-        }
-      })
-      .catch((e) => {
-        console.log(e)
-      })
+      api.call('auth', this.userDetails, 'POST', false)
+        .then((data) => {
+          if (data.success) {
+            setUserToken(data.token)
+            this.$router.push('/')
+          } else {
+            console.log(data)
+            this.errors = data.errors
+            console.log(this.errors)
+          }
+        })
+        .catch((e) => {
+          console.log(e)
+        })
     }
   }
 })
