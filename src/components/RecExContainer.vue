@@ -35,8 +35,8 @@ import { radioButtonOnOutline, stopOutline, save, trash } from 'ionicons/icons';
 import * as api from '../plugins/api'
 import * as platform from '../plugins/platform'
 
-import { Geolocation } from '@ionic-native/geolocation'
 import { BackgroundGeolocation, BackgroundGeolocationEvents } from '@ionic-native/background-geolocation'
+import { Geolocation } from '@ionic-native/geolocation'
 
 export default defineComponent({
   name: 'RecExContainer',
